@@ -1,6 +1,7 @@
 package goenv
 
 import (
+	"net/url"
 	"testing"
 	"time"
 )
@@ -14,10 +15,12 @@ type ts struct {
 	TestString   string
 	TestFloat64  float64
 	TestDuration time.Duration
+	TestURL      url.URL
 }
 
 func TestDefault(t *testing.T) {
 	d, _ := time.ParseDuration("2h45m")
+	url := url.URL{Host: "test.com"}
 
 	ts := &ts{}
 	BoolVar(&ts.TestBool, "TEST_BOOL", false)
@@ -28,6 +31,7 @@ func TestDefault(t *testing.T) {
 	StringVar(&ts.TestString, "TEST_STRING", "0")
 	Float64Var(&ts.TestFloat64, "TEST_FLOAT64", 4.25)
 	DurationVar(&ts.TestDuration, "TEST_DURATION", d)
+	URLVar(&ts.TestURL, "TEST_URL", url)
 
 	Parse()
 
@@ -51,6 +55,9 @@ func TestDefault(t *testing.T) {
 	}
 	if ts.TestDuration != d {
 		t.Error("TestBool should be false")
+	}
+	if ts.TestURL != url {
+		t.Error("TestBool should be ", url.String())
 	}
 }
 
@@ -155,5 +162,20 @@ func TestNewStringValue(t *testing.T) {
 	v.Set("hello world")
 	if p != "hello world" {
 		t.Error("Get newFloat64Value should be hello world")
+	}
+}
+
+func TestNewURLValue(t *testing.T) {
+	var p url.URL
+
+	u := url.URL{Host: "test.com"}
+
+	v := newURLValue(u, &p)
+	if v.Get().(url.URL) != u {
+		t.Error("Get newURLValue should be ", u.String())
+	}
+	v.Set("http://new.test.com")
+	if p.Host != "new.test.com" || p.Scheme != "http" {
+		t.Error("Get newURLValue should be ", p.String())
 	}
 }
