@@ -260,7 +260,11 @@ func (e *EnvVarSet) failf(format string, a ...interface{}) error {
 
 func (e *EnvVarSet) printEnv() {
 	for _, v := range e.formal {
-		fmt.Printf("%s=\"%s\" \n", v.Name, v.DefValue)
+		val := v.DefValue
+		if v.Value.String() != "" {
+			val = v.Value.String()
+		}
+		fmt.Printf("%s=\"%s\" \n", v.Name, val)
 	}
 	os.Exit(0)
 }
