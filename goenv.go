@@ -272,9 +272,6 @@ func (e *EnvVarSet) printEnv() {
 func (e *EnvVarSet) Parse() error {
 	flag.Parse()
 
-	if *envShowFlag {
-		e.printEnv()
-	}
 	for _, v := range e.formal {
 		value, ok := os.LookupEnv(v.Name)
 		if !ok {
@@ -284,6 +281,11 @@ func (e *EnvVarSet) Parse() error {
 			return e.failf("invalid value %q for env %s: %v", value, v.Name, err)
 		}
 	}
+
+	if *envShowFlag {
+		e.printEnv()
+	}
+
 	return nil
 }
 
