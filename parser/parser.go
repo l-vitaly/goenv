@@ -1,11 +1,14 @@
-package goenv
+package parser
 
 import (
 	"bufio"
 	"fmt"
+	"net/url"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -20,15 +23,43 @@ var (
 	removeQuotesRegExp = regexp.MustCompile(removeQuotesRegExpPattern)
 )
 
-// EnvVars environment variables.
-type EnvVars map[string]string
-
-// Loader loading env file.
-type Loader struct {
+// EnvVar var.
+type EnvVar struct {
+	Name  string
+	Value interface{}
 }
 
-// Load load nev file.
-func (l *Loader) Load(filename string) (EnvVars, error) {
+// EnvSet environment variables.
+type EnvSet map[string]EnvVar
+
+func str2Type(s string) interface{} {
+	if v, err := strconv.ParseInt(s, 10, 64); err == nil {
+		return v
+	}
+	if v, err := strconv.ParseUint(s, 10, 64); err == nil {
+		return v
+	}
+	if v, err := strconv.ParseFloat(s, 64); err == nil {
+		return v
+	}
+	if v, err := strconv.ParseBool(s); err == nil {
+		return v
+	}
+	if v, err := time.ParseDuration(s); err == nil {
+		return v
+	}
+	if v, err := url.Parse(s); err == nil && v.Scheme != "" {
+		return v
+	}
+	return s
+}
+
+// Parser parser for env file.
+type Parser struct {
+}
+
+// Parse env file.
+func (l *Parser) Parse(filename string) (EnvSet, error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -37,29 +68,29 @@ func (l *Loader) Load(filename string) (EnvVars, error) {
 	return l.parse(f)
 }
 
-func (l *Loader) parse(f *os.File) (EnvVars, error) {
-	envVars := make(EnvVars, 16)
+func (l *Parser) parse(f *os.File) (EnvSet, error) {
+	envVars := make(EnvSet, 32)
 
 	scanner := bufio.NewScanner(f)
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		key, val, err := l.parseLine(line)
+		name, val, err := l.parseLine(line)
 		if err != nil {
 			return nil, err
 		}
-		if key == "" {
+		if name == "" {
 			continue
 		}
-		if _, ok := envVars[key]; ok {
+		if _, ok := envVars[name]; ok {
 			return nil, fmt.Errorf("Line `%s` has an unset variable", line)
 		}
-		envVars[key] = val
+		envVars[name] = EnvVar{Name: name, Value: str2Type(val)}
 	}
 	return envVars, nil
 }
 
-func (l *Loader) parseLine(line string) (key string, val string, err error) {
+func (l *Parser) parseLine(line string) (key string, val string, err error) {
 	parts := lineRegExp.FindStringSubmatch(line)
 
 	if len(parts) == 0 {
@@ -75,4 +106,9 @@ func (l *Loader) parseLine(line string) (key string, val string, err error) {
 	val = removeQuotesRegExp.ReplaceAllString(val, "$2")
 
 	return key, val, nil
+}
+
+// New creates a Parser instance.
+func New() *Parser {
+	return &Parser{}
 }

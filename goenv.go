@@ -11,7 +11,8 @@ import (
 	"time"
 )
 
-var Env = NewEnvSet()
+// EnvSet env set.
+var EnvSet = NewEnvSet()
 
 var envShowFlag = flag.Bool("env", false, "")
 
@@ -173,56 +174,68 @@ func (u *urlValue) Get() interface{} { return url.URL(*u) }
 
 func (u *urlValue) String() string { return (*url.URL)(u).String() }
 
+// Value env.
 type Value interface {
 	String() string
 	Set(string) error
 }
 
+// EnvVar env var.
 type EnvVar struct {
 	Name     string
 	Value    Value  // value as set
-	DefValue string // default value (as text); for usage message
+	DefValue string // default value
 }
 
+// EnvVarSet envs var set.
 type EnvVarSet struct {
 	formal map[string]*EnvVar
 	output io.Writer
 }
 
+// StringVar load string.
 func StringVar(p *string, name string, value string) {
-	Env.Var(newStringValue(value, p), name)
+	EnvSet.Var(newStringValue(value, p), name)
 }
 
+// URLVar load url.
 func URLVar(p *url.URL, name string, value url.URL) {
-	Env.Var(newURLValue(value, p), name)
+	EnvSet.Var(newURLValue(value, p), name)
 }
 
+// BoolVar load bool.
 func BoolVar(p *bool, name string, value bool) {
-	Env.Var(newBoolValue(value, p), name)
+	EnvSet.Var(newBoolValue(value, p), name)
 }
 
+// IntVar load int.
 func IntVar(p *int, name string, value int) {
-	Env.Var(newIntValue(value, p), name)
+	EnvSet.Var(newIntValue(value, p), name)
 }
 
+// Int64Var load int64.
 func Int64Var(p *int64, name string, value int64) {
-	Env.Var(newInt64Value(value, p), name)
+	EnvSet.Var(newInt64Value(value, p), name)
 }
 
+// UintVar load uint.
 func UintVar(p *uint, name string, value uint) {
-	Env.Var(newUintValue(value, p), name)
+	EnvSet.Var(newUintValue(value, p), name)
 }
 
+// Uint64Var load uint64.
 func Uint64Var(p *uint64, name string, value uint64) {
-	Env.Var(newUint64Value(value, p), name)
+	EnvSet.Var(newUint64Value(value, p), name)
 }
 
+// Float64Var load float64.
 func Float64Var(p *float64, name string, value float64) {
-	Env.Var(newFloat64Value(value, p), name)
+	EnvSet.Var(newFloat64Value(value, p), name)
 }
 
+// DurationVar load time.Duration.
 func DurationVar(p *time.Duration, name string, value time.Duration) {
-	Env.Var(newDurationValue(value, p), name)
+	EnvSet.Var(newDurationValue(value, p), name)
 }
 
 func (e *EnvVarSet) out() io.Writer {
@@ -232,12 +245,14 @@ func (e *EnvVarSet) out() io.Writer {
 	return e.output
 }
 
+// VisitAll walk for all envs.
 func (e *EnvVarSet) VisitAll(fn func(*EnvVar)) {
 	for _, flag := range e.formal {
 		fn(flag)
 	}
 }
 
+// Var load value.
 func (e *EnvVarSet) Var(value Value, name string) {
 	envVar := &EnvVar{name, value, value.String()}
 	_, alreadyThere := e.formal[name]
@@ -269,6 +284,7 @@ func (e *EnvVarSet) printEnv() {
 	os.Exit(0)
 }
 
+// Parse env.
 func (e *EnvVarSet) Parse() error {
 	flag.Parse()
 
@@ -289,12 +305,14 @@ func (e *EnvVarSet) Parse() error {
 	return nil
 }
 
+// NewEnvSet creates a EnvVarSet instance.
 func NewEnvSet() *EnvVarSet {
 	return &EnvVarSet{}
 }
 
+// Parse env.
 func Parse() {
-	err := Env.Parse()
+	err := EnvSet.Parse()
 	if err != nil {
 		os.Exit(2)
 	}
