@@ -168,9 +168,7 @@ func traverse(parents []string, value *node) *node {
 
 	for i := 1; i < len(parents); i++ {
 		next.Child = &node{Name: normalize(parents[i], true)}
-
 		cfgPath = cfgPath + "." + next.Child.Name
-
 		next = next.Child
 	}
 
@@ -182,11 +180,15 @@ func traverse(parents []string, value *node) *node {
 func main() {
 	flag.Parse()
 
-	if len(os.Args) < 3 {
+	if len(os.Args) < 2 {
 		log.Fatal(usage())
 	}
 	filename := flag.Arg(0)
-	prefix := flag.Arg(1)
+
+	prefix := ""
+	if len(os.Args) < 3 {
+		prefix = flag.Arg(1)
+	}
 
 	l := parser.New()
 
