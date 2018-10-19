@@ -2,7 +2,7 @@
 
 ### Example
 
-[See](https://github.com/l-vitaly/goenv/example/README.md)
+[See](example/README.md)
 
 #### Generate from env file
 
