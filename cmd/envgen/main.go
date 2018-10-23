@@ -186,7 +186,7 @@ func main() {
 	filename := flag.Arg(0)
 
 	prefix := ""
-	if len(os.Args) < 3 {
+	if len(os.Args) == 3 {
 		prefix = flag.Arg(1)
 	}
 
