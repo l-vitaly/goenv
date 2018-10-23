@@ -159,8 +159,8 @@ func newURLValue(val url.URL, p *url.URL) *urlValue {
 }
 
 func (u *urlValue) Set(val string) error {
-	if !strings.HasPrefix(val, "http") {
-		val = "http://" + val
+	if !strings.Contains(val, "://") {
+		return nil
 	}
 	url, err := url.Parse(val)
 	if err != nil {
