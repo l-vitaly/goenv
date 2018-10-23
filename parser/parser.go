@@ -48,8 +48,10 @@ func str2Type(s string) interface{} {
 	if v, err := time.ParseDuration(s); err == nil {
 		return v
 	}
-	if v, err := url.Parse(s); err == nil && v.Scheme != "" {
-		return v
+	if strings.Contains(s, "://") {
+		if v, err := url.Parse(s); err == nil {
+			return v
+		}
 	}
 	return s
 }

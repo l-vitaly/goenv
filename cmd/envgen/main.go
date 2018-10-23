@@ -31,6 +31,8 @@ import (
 	"github.com/l-vitaly/goenv"
 )
 
+var urlNil = url.URL{}
+
 const errPattern = "could not set %s"
 
 // env name constants
@@ -60,6 +62,7 @@ type node struct {
 	Name       string
 	Type       string
 	Value      interface{}
+	RawValue   interface{}
 	EmptyValue interface{}
 	Func       string
 	Env        string
@@ -95,7 +98,7 @@ func normalize(s string, firstUpper bool) string {
 func normalizeValue(t interface{}) interface{} {
 	switch v := t.(type) {
 	case *url.URL:
-		return template.HTML("\"" + v.String() + "\"")
+		return "url.URL{}"
 	case time.Duration:
 		return strconv.Itoa(int(v.Seconds())) + " * time.Second"
 	case bool:
@@ -123,6 +126,8 @@ func valType(t interface{}) string {
 		return "int"
 	case float64:
 		return "float"
+	case *url.URL:
+		return "url.URL"
 	case time.Duration:
 		return "time.Duration"
 	default:
@@ -132,6 +137,8 @@ func valType(t interface{}) string {
 
 func emptyVal(t interface{}) interface{} {
 	switch t.(type) {
+	case *url.URL:
+		return "urlNil"
 	case uint64, int64, float64, time.Duration:
 		return "0"
 	default:
@@ -216,6 +223,7 @@ func main() {
 			Env:        envName,
 			Type:       valType(envVar.Value),
 			Value:      normalizeValue(envVar.Value),
+			RawValue:   envVar.Value,
 			Func:       envFunc(envVar.Value),
 			EmptyValue: emptyVal(envVar.Value),
 		}
