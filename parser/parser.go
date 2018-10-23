@@ -29,8 +29,8 @@ type EnvVar struct {
 	Value interface{}
 }
 
-// EnvSet environment variables.
-type EnvSet map[string]EnvVar
+// Envs environment variables.
+type Envs []EnvVar
 
 func str2Type(s string) interface{} {
 	if v, err := strconv.ParseInt(s, 10, 64); err == nil {
@@ -59,7 +59,7 @@ type Parser struct {
 }
 
 // Parse env file.
-func (l *Parser) Parse(filename string) (EnvSet, error) {
+func (l *Parser) Parse(filename string) (Envs, error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -68,10 +68,12 @@ func (l *Parser) Parse(filename string) (EnvSet, error) {
 	return l.parse(f)
 }
 
-func (l *Parser) parse(f *os.File) (EnvSet, error) {
-	envVars := make(EnvSet, 32)
+func (l *Parser) parse(f *os.File) (Envs, error) {
+	var envVars Envs
 
 	scanner := bufio.NewScanner(f)
+
+	checkMap := make(map[string]struct{}, 64)
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -82,10 +84,13 @@ func (l *Parser) parse(f *os.File) (EnvSet, error) {
 		if name == "" {
 			continue
 		}
-		if _, ok := envVars[name]; ok {
+		if _, ok := checkMap[name]; ok {
 			return nil, fmt.Errorf("Line `%s` has an unset variable", line)
 		}
-		envVars[name] = EnvVar{Name: name, Value: str2Type(val)}
+
+		envVars = append(envVars, EnvVar{Name: name, Value: str2Type(val)})
+
+		checkMap[name] = struct{}{}
 	}
 	return envVars, nil
 }
