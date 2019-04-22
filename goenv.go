@@ -135,6 +135,24 @@ func (d *durationValue) Get() interface{} { return time.Duration(*d) }
 
 func (d *durationValue) String() string { return (*time.Duration)(d).String() }
 
+type stringsValue []string
+
+func newStringsValue(val []string, p *[]string) *stringsValue {
+	*p = val
+	return (*stringsValue)(p)
+}
+
+func (s *stringsValue) Set(val string) error {
+	if val != "" {
+		*s = stringsValue(strings.Split(val, ","))
+	}
+	return nil
+}
+
+func (s *stringsValue) Get() interface{} { return []string(*s) }
+
+func (s *stringsValue) String() string { return strings.Join([]string(*s), ",") }
+
 type stringValue string
 
 func newStringValue(val string, p *string) *stringValue {
@@ -191,6 +209,11 @@ type EnvVar struct {
 type EnvVarSet struct {
 	formal map[string]*EnvVar
 	output io.Writer
+}
+
+// StringsVar load string slice.
+func StringsVar(p *[]string, name string, value []string) {
+	EnvSet.Var(newStringsValue(value, p), name)
 }
 
 // StringVar load string.

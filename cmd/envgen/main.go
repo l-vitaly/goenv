@@ -231,12 +231,6 @@ func main() {
 		nodes = append(nodes, traverse(parents[:len(parents)-1], v))
 	}
 
-	for _, n := range nodes {
-		if n.Child != nil {
-			fmt.Println(n.Child.Child)
-		}
-	}
-
 	t := template.Must(template.New("envCfg").Parse(envCfgTemplate))
 
 	buf := new(bytes.Buffer)

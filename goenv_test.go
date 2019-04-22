@@ -2,6 +2,7 @@ package goenv
 
 import (
 	"net/url"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -16,6 +17,7 @@ type ts struct {
 	TestFloat64  float64
 	TestDuration time.Duration
 	TestURL      url.URL
+	TestStrings  []string
 }
 
 func TestDefault(t *testing.T) {
@@ -32,6 +34,7 @@ func TestDefault(t *testing.T) {
 	Float64Var(&ts.TestFloat64, "TEST_FLOAT64", 4.25)
 	DurationVar(&ts.TestDuration, "TEST_DURATION", d)
 	URLVar(&ts.TestURL, "TEST_URL", url)
+	StringsVar(&ts.TestStrings, "TEST_STRINGS", nil)
 
 	Parse()
 
@@ -58,6 +61,9 @@ func TestDefault(t *testing.T) {
 	}
 	if ts.TestURL != url {
 		t.Error("TestBool should be ", url.String())
+	}
+	if ts.TestStrings != nil {
+		t.Error("TestStrings should be nil")
 	}
 }
 
@@ -148,7 +154,7 @@ func TestNewDurationValue(t *testing.T) {
 	}
 	v.Set("2h")
 	if p != time.Hour*2 {
-		t.Error("Get newFloat64Value should be 2h")
+		t.Error("Get newDurationValue should be 2h")
 	}
 }
 
@@ -161,7 +167,20 @@ func TestNewStringValue(t *testing.T) {
 	}
 	v.Set("hello world")
 	if p != "hello world" {
-		t.Error("Get newFloat64Value should be hello world")
+		t.Error("Get newStringValue should be hello world")
+	}
+}
+
+func TestNewStringsValue(t *testing.T) {
+	var p []string
+
+	v := newStringsValue([]string{"hello"}, &p)
+	if !reflect.DeepEqual(v.Get().([]string), []string{"hello"}) {
+		t.Error("Get newStringsValue should be hello")
+	}
+	v.Set("hello,world")
+	if !reflect.DeepEqual(p, []string{"hello", "world"}) {
+		t.Error("Get newStringsValue should be []string{\"hello\", \"world\"")
 	}
 }
 
